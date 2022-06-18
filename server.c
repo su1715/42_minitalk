@@ -6,7 +6,7 @@
 /*   By: sujpark <sujpark@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/16 19:13:29 by sujpark           #+#    #+#             */
-/*   Updated: 2022/06/18 20:30:51 by sujpark          ###   ########.fr       */
+/*   Updated: 2022/06/18 22:04:14 by sujpark          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,13 +16,11 @@ static void	init_sigact(void);
 
 static void	end_receive(pid_t pid)
 {
-	if (kill(pid, SIGUSR2) < 0)
-		if (ft_printf("server: Error: Lost connection to client(PID: %d)\n", pid) < 0)
-			exit(EXIT_FAILURE);
+	kill_wrapping(pid, SIGUSR2);
 	init_sigact();
 }
 
-static void receive_msg(int sig, siginfo_t *siginfo, void *context)
+static void	receive_msg(int sig, siginfo_t *siginfo, void *context)
 {
 	static char		character;
 	static int		cnt_bit;
@@ -47,29 +45,25 @@ static void receive_msg(int sig, siginfo_t *siginfo, void *context)
 		}
 		write_char(character);
 	}
-	if (kill(pid, SIGUSR1) < 0)
-		if (ft_printf("server: Error: Lost connection to client(PID: %d)\n", pid) < 0)
-			exit(EXIT_FAILURE);
+	kill_wrapping(pid, SIGUSR1);
 }
 
-static void connect(int sig, siginfo_t *siginfo, void *context)
+static void	connect(int sig, siginfo_t *siginfo, void *context)
 {
-	int		client_pid;
+	int			client_pid;
 	t_sigact	sigact;
 
 	(void) sig;
 	(void) context;
 	client_pid = siginfo->si_pid;
-	if (ft_printf("server: Connect to client(PID: %d)\n", client_pid) < 0)
+	if (ft_printf("Connect to client(PID: %d)\n", client_pid) < 0)
 		exit(EXIT_FAILURE);
 	sigact.sa_flags = SA_SIGINFO;
 	sigact.sa_sigaction = receive_msg;
 	if (sigaction(SIGUSR1, &sigact, NULL) == -1
 		|| sigaction(SIGUSR2, &sigact, NULL) == -1)
-		error_exit("server: Error: Sigaction failed its work.");
-	if (kill(client_pid, SIGUSR1) < 0)
-		if (ft_printf("server: Error: Lost connection to client(PID: %d)\n", client_pid) < 0)
-			exit(EXIT_FAILURE);
+		error_exit("Error: Sigaction failed its work.");
+	kill_wrapping(client_pid, SIGUSR1);
 }
 
 static void	init_sigact(void)
@@ -79,13 +73,13 @@ static void	init_sigact(void)
 	sigact.sa_flags = SA_SIGINFO;
 	sigact.sa_sigaction = connect;
 	if (sigaction(SIGUSR1, &sigact, NULL) == -1)
-		error_exit("server: Error: Sigaction failed its work.");
+		error_exit("Error: Sigaction failed its work.");
 }
 
-int main(void)
+int	main(void)
 {
 	print_pid(SERVER);
 	init_sigact();
-	while(1)
+	while (1)
 		pause();
 }

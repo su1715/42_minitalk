@@ -6,7 +6,7 @@
 /*   By: sujpark <sujpark@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/16 18:09:19 by sujpark           #+#    #+#             */
-/*   Updated: 2022/06/18 21:14:30 by sujpark          ###   ########.fr       */
+/*   Updated: 2022/06/18 21:47:46 by sujpark          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,15 +37,15 @@ static int	get_bit(void)
 static void	send_char_bit(int sig, siginfo_t *siginfo, void *context)
 {
 	int	bit;
-	int bit_signal;
+	int	bit_signal;
 
 	(void) context;
 	if (siginfo->si_pid != g_send_info.server_pid)
-		return;
+		return ;
 	bit = get_bit();
 	if (sig == SIGUSR2)
 	{
-		if (ft_printf("client: Server received full message\n") < 0)
+		if (ft_printf("Server received full message\n") < 0)
 			exit(EXIT_FAILURE);
 		exit(EXIT_SUCCESS);
 	}
@@ -56,24 +56,23 @@ static void	send_char_bit(int sig, siginfo_t *siginfo, void *context)
 		else
 			bit_signal = SIGUSR2;
 		if (kill(g_send_info.server_pid, bit_signal) < 0)
-			error_exit("client: Send message to server failed.");
+			error_exit("Send message to server failed.");
 	}
 }
 
-static void send_message(int sig, siginfo_t *siginfo, void *context)
+static void	send_message(int sig, siginfo_t *siginfo, void *context)
 {
 	t_sigact	sigact;
 
 	if (siginfo->si_pid != g_send_info.server_pid)
-		return;
-	if (ft_printf("client: Connect to server(PID: %d)\n", g_send_info.server_pid, 1) < 0)
+		return ;
+	if (ft_printf("Connect to server(PID: %d)\n", siginfo->si_pid, 1) < 0)
 		exit(EXIT_FAILURE);
 	sigact.sa_flags = SA_SIGINFO;
 	sigact.sa_sigaction = send_char_bit;
 	if (sigaction(SIGUSR1, &sigact, NULL) == -1
 		|| sigaction(SIGUSR2, &sigact, NULL) == -1)
-		error_exit("client: Error: Sigaction failed its work.");
-
+		error_exit("Error: Sigaction failed its work.");
 	send_char_bit(sig, siginfo, context);
 }
 
@@ -90,15 +89,13 @@ static void	init_sigact(void)
 int	main(int argc, char **argv)
 {
 	if (argc != 3)
-		error_exit("client: Error: Wrong parameters(./client [server PID] [msg])");
+		error_exit("Error: Wrong parameters (./client [server PID] [msg])");
 	g_send_info.server_pid = ft_atoi(argv[1]);
-	if (g_send_info.server_pid < 100 || g_send_info.server_pid > 99998)
-		error_exit("client: Error: Invalid PID");
-	g_send_info.str = (unsigned char *) argv[2];
+	g_send_info.str = argv[2];
 	print_pid(CLIENT);
 	init_sigact();
 	if (kill(g_send_info.server_pid, SIGUSR1))
-		error_exit("client: Error: Signal to server failed.");
-	while(1)
+		error_exit("Error: Connect to server failed.");
+	while (1)
 		pause();
 }
