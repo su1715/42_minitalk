@@ -6,7 +6,7 @@
 /*   By: sujpark <sujpark@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/16 18:09:19 by sujpark           #+#    #+#             */
-/*   Updated: 2022/06/18 20:16:47 by sujpark          ###   ########.fr       */
+/*   Updated: 2022/06/18 21:14:30 by sujpark          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,17 +16,21 @@ t_send_info	g_send_info;
 
 static int	get_bit(void)
 {
-	static int	i = 0;
-	static int	recv = 0;
+	static int	char_position = 0;
+	static int	bit_order = 0;
+	int			bit_position;
 
-	recv++;
-	if (recv > 8)
+	bit_order++;
+	if (bit_order > 8)
 	{
-		i++;
-		recv = 1;
+		char_position++;
+		bit_order = 1;
 	}
-	if (g_send_info.str[i])
-		return (g_send_info.str[i] & (1 << (8 - recv)));
+	if (g_send_info.str[char_position])
+	{
+		bit_position = 1 << (8 - bit_order);
+		return (g_send_info.str[char_position] & bit_position);
+	}
 	return (0);
 }
 
@@ -68,7 +72,7 @@ static void send_message(int sig, siginfo_t *siginfo, void *context)
 	sigact.sa_sigaction = send_char_bit;
 	if (sigaction(SIGUSR1, &sigact, NULL) == -1
 		|| sigaction(SIGUSR2, &sigact, NULL) == -1)
-		error_exit("client: Erro: Sigaction failed its work.");
+		error_exit("client: Error: Sigaction failed its work.");
 
 	send_char_bit(sig, siginfo, context);
 }

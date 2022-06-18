@@ -6,7 +6,7 @@
 /*   By: sujpark <sujpark@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/16 19:13:29 by sujpark           #+#    #+#             */
-/*   Updated: 2022/06/18 19:53:24 by sujpark          ###   ########.fr       */
+/*   Updated: 2022/06/18 20:30:51 by sujpark          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,9 @@ static void	init_sigact(void);
 
 static void	end_receive(pid_t pid)
 {
-	kill(pid, SIGUSR2);
+	if (kill(pid, SIGUSR2) < 0)
+		if (ft_printf("server: Error: Lost connection to client(PID: %d)\n", pid) < 0)
+			exit(EXIT_FAILURE);
 	init_sigact();
 }
 
@@ -45,7 +47,9 @@ static void receive_msg(int sig, siginfo_t *siginfo, void *context)
 		}
 		write_char(character);
 	}
-	kill(pid, SIGUSR1);
+	if (kill(pid, SIGUSR1) < 0)
+		if (ft_printf("server: Error: Lost connection to client(PID: %d)\n", pid) < 0)
+			exit(EXIT_FAILURE);
 }
 
 static void connect(int sig, siginfo_t *siginfo, void *context)
@@ -63,7 +67,9 @@ static void connect(int sig, siginfo_t *siginfo, void *context)
 	if (sigaction(SIGUSR1, &sigact, NULL) == -1
 		|| sigaction(SIGUSR2, &sigact, NULL) == -1)
 		error_exit("server: Error: Sigaction failed its work.");
-	kill(client_pid, SIGUSR1);
+	if (kill(client_pid, SIGUSR1) < 0)
+		if (ft_printf("server: Error: Lost connection to client(PID: %d)\n", client_pid) < 0)
+			exit(EXIT_FAILURE);
 }
 
 static void	init_sigact(void)

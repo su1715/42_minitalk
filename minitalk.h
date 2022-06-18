@@ -6,7 +6,7 @@
 /*   By: sujpark <sujpark@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/16 17:42:40 by sujpark           #+#    #+#             */
-/*   Updated: 2022/06/18 19:57:46 by sujpark          ###   ########.fr       */
+/*   Updated: 2022/06/18 21:06:43 by sujpark          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,5 +32,3 @@ void	error_exit(const char *str);
 void	write_char(char character);
 
 #endif
-
-// kill 에러처리 => pid 확인
