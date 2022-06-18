@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   client.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sujpark <sujpark@student.42.fr>            +#+  +:+       +#+        */
+/*   By: sujpark <sujpark@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/16 18:09:19 by sujpark           #+#    #+#             */
-/*   Updated: 2022/06/16 21:58:04 by sujpark          ###   ########.fr       */
+/*   Updated: 2022/06/18 20:16:47 by sujpark          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-t_info	g_info;
+t_send_info	g_send_info;
 
 static int	get_bit(void)
 {
@@ -25,27 +25,34 @@ static int	get_bit(void)
 		i++;
 		recv = 1;
 	}
-	if (g_info.str[i])
-		return (g_info.str[i] & (1 << (8 - recv)));
+	if (g_send_info.str[i])
+		return (g_send_info.str[i] & (1 << (8 - recv)));
 	return (0);
 }
 
 static void	send_char_bit(int sig, siginfo_t *siginfo, void *context)
 {
 	int	bit;
+	int bit_signal;
 
-	// siginfo 통해서 server pid 확인하기
-	(void) siginfo; // sigact가 아닌 sig로 처리할 수 있는지 생각해보기
 	(void) context;
+	if (siginfo->si_pid != g_send_info.server_pid)
+		return;
 	bit = get_bit();
-	if (sig == SIGUSR2) // 여기에 서버에서 수신했다고 확인 메세지 띄워야하는 것 아닌지? (보너스)
+	if (sig == SIGUSR2)
+	{
+		if (ft_printf("client: Server received full message\n") < 0)
+			exit(EXIT_FAILURE);
 		exit(EXIT_SUCCESS);
+	}
 	if (sig == SIGUSR1)
 	{
 		if (!bit)
-			kill(g_info.server_pid, SIGUSR1);
+			bit_signal = SIGUSR1;
 		else
-			kill(g_info.server_pid, SIGUSR2);
+			bit_signal = SIGUSR2;
+		if (kill(g_send_info.server_pid, bit_signal) < 0)
+			error_exit("client: Send message to server failed.");
 	}
 }
 
@@ -53,18 +60,20 @@ static void send_message(int sig, siginfo_t *siginfo, void *context)
 {
 	t_sigact	sigact;
 
-	ft_printf("client : Connect to server(PID: %d)\n", g_info.server_pid, 1);
-	// server랑 연결됐다는것 꼭 적어야하는지?
+	if (siginfo->si_pid != g_send_info.server_pid)
+		return;
+	if (ft_printf("client: Connect to server(PID: %d)\n", g_send_info.server_pid, 1) < 0)
+		exit(EXIT_FAILURE);
 	sigact.sa_flags = SA_SIGINFO;
 	sigact.sa_sigaction = send_char_bit;
 	if (sigaction(SIGUSR1, &sigact, NULL) == -1
 		|| sigaction(SIGUSR2, &sigact, NULL) == -1)
-		error_exit("[Error] Sigaction failed its work.");
+		error_exit("client: Erro: Sigaction failed its work.");
 
 	send_char_bit(sig, siginfo, context);
 }
 
-static void	init_sigact(void) // static 왜 안넣었던 건지?
+static void	init_sigact(void)
 {
 	t_sigact	sigact;
 
@@ -76,15 +85,16 @@ static void	init_sigact(void) // static 왜 안넣었던 건지?
 
 int	main(int argc, char **argv)
 {
-	if (argc != 3) // 꼭 이렇게 자세하게 적어야하는지? 정해진 형식이 있는지?
+	if (argc != 3)
 		error_exit("client: Error: Wrong parameters(./client [server PID] [msg])");
-	g_info.server_pid = ft_atoi(argv[1]);
-	if (g_info.server_pid < 100 || g_info.server_pid > 99998)
+	g_send_info.server_pid = ft_atoi(argv[1]);
+	if (g_send_info.server_pid < 100 || g_send_info.server_pid > 99998)
 		error_exit("client: Error: Invalid PID");
-	g_info.str = (unsigned char *) argv[2];
+	g_send_info.str = (unsigned char *) argv[2];
 	print_pid(CLIENT);
 	init_sigact();
-	kill(g_info.server_pid, SIGUSR1);
+	if (kill(g_send_info.server_pid, SIGUSR1))
+		error_exit("client: Error: Signal to server failed.");
 	while(1)
 		pause();
 }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sujpark <sujpark@student.42.fr>            +#+  +:+       +#+        */
+/*   By: sujpark <sujpark@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/16 19:13:29 by sujpark           #+#    #+#             */
-/*   Updated: 2022/06/16 21:22:09 by sujpark          ###   ########.fr       */
+/*   Updated: 2022/06/18 19:53:24 by sujpark          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,9 +22,9 @@ static void	end_receive(pid_t pid)
 
 static void receive_msg(int sig, siginfo_t *siginfo, void *context)
 {
-	static unsigned char	character;
-	static int				cnt_bit;
-	static pid_t			pid;
+	static char		character;
+	static int		cnt_bit;
+	static pid_t	pid;
 
 	(void) context;
 	if (!character && !cnt_bit)
@@ -39,11 +39,11 @@ static void receive_msg(int sig, siginfo_t *siginfo, void *context)
 		cnt_bit = 0;
 		if (!character)
 		{
-			write(1, "\n", 1);
+			write_char('\n');
 			end_receive(pid);
 			return ;
 		}
-		write(1, &character, 1);
+		write_char(character);
 	}
 	kill(pid, SIGUSR1);
 }
@@ -56,7 +56,8 @@ static void connect(int sig, siginfo_t *siginfo, void *context)
 	(void) sig;
 	(void) context;
 	client_pid = siginfo->si_pid;
-	ft_printf("server: Connect to client(PID: %d)\n", client_pid);
+	if (ft_printf("server: Connect to client(PID: %d)\n", client_pid) < 0)
+		exit(EXIT_FAILURE);
 	sigact.sa_flags = SA_SIGINFO;
 	sigact.sa_sigaction = receive_msg;
 	if (sigaction(SIGUSR1, &sigact, NULL) == -1
