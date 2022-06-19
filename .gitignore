@@ -1,0 +1,9 @@
+**/*.o
+.vscode
+a.out
+test.c
+.DS_Store
+obj
+client
+server
+**/*.a
