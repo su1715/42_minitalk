@@ -6,7 +6,7 @@
 #    By: sujpark <sujpark@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/06/16 21:28:58 by sujpark           #+#    #+#              #
-#    Updated: 2022/06/19 16:52:18 by sujpark          ###   ########.fr        #
+#    Updated: 2022/06/19 19:34:46 by sujpark          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,7 +19,6 @@ SERVER = server
 CLIENT = client
 
 OBJ_DIR = ./obj
-
 SERVER_BONUS_SRCS = server_bonus.c \
 			minitalk_utils_bonus.c
 CLIENT_BONUS_SRCS = client_bonus.c \
